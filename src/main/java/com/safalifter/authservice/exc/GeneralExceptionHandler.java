@@ -36,4 +36,10 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<?> validationException(ValidationException exception) {
         return ResponseEntity.badRequest().body(exception.getValidationErrors());
     }
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<?> handleEmailAlreadyExists(EmailAlreadyExistsException exception) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", exception.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.CONFLICT);  // 409 Conflict for duplicate resources
+    }
 }

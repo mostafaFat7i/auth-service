@@ -3,6 +3,7 @@ package com.safalifter.authservice.service.imp;
 
 import com.safalifter.authservice.dto.TokenDto;
 import com.safalifter.authservice.entities.User;
+import com.safalifter.authservice.exc.EmailAlreadyExistsException;
 import com.safalifter.authservice.exc.WrongCredentialsException;
 import com.safalifter.authservice.repo.UserRepo;
 import com.safalifter.authservice.request.LoginRequest;
@@ -33,7 +34,8 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     public TokenDto login(LoginRequest request) {
-        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        Authentication authenticate = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         if (authenticate.isAuthenticated())
             return TokenDto
                     .builder()
@@ -43,12 +45,17 @@ public class AuthService {
     }
 
     public User register(RegisterRequest request) {
+
+        if (repo.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
         User user = User
                 .builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getUsername())
                 .build();
+
         return repo.save(user);
     }
 }
